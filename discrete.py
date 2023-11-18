@@ -1,12 +1,11 @@
 import torch as th
 
 
-
-class TweedieLoss():
+class TweedieNLLLoss():
     pass
 
 
-class PossionLogLikelihoodLoss():
+class PossionNLLLoss():
     def __init__(self):
         pass
 
@@ -14,11 +13,18 @@ class PossionLogLikelihoodLoss():
         return self.__loss_fn__(z, mu)
 
     def __loss_fn__(self, z, mu):
-        loss = mu - z * th.log(mu)
+        '''
+        The approximation is used for target values more than 1. 
+        For targets less or equal to 1, zeros are added to the loss.
+        '''
+        mask_ = (z <= 1.0)
+        possion_nll = mu - z * th.log(mu)
+        loss = possion_nll[mask_]
+
         return th.sum(loss)
 
 
-class NegativeBinomialLogLikelihoodLoss():
+class NegativeBinomialNLLLoss():
     def __init__(self):
         pass
 
@@ -27,7 +33,6 @@ class NegativeBinomialLogLikelihoodLoss():
 
     def __loss_fn__(self, z, mu, alpha):
         loss = th.lgamma(z + 1.0 / alpha) - th.lgamma(z + 1.0) - th.lgamma(1.0 / alpha) \
-            - 1.0 / alpha * th.log(1 + alpha * mu) + z * th.log(alpha * mu / (1 + alpha * mu))
+               - 1.0 / alpha * th.log(1 + alpha * mu) + z * th.log(alpha * mu / (1 + alpha * mu))
 
         return th.sum(loss)
-    
